@@ -8,6 +8,7 @@ import helment from "helmet";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
+import { register } from "./controllers/auth.js";
 
 /* CONFIGURATION */
 const __filename = fileURLToPath(import.meta.url);
@@ -16,7 +17,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(helment());
-app.use(helment.crossOriginaResourcePolicy({ policy: "cross-origin" }));
+app.use(helment.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
@@ -33,4 +34,13 @@ const storage = multer.diskStorage({
     }
 })
 
+/* ROUTES WITH FILES */
+app.post("/auth/register", upload.single("picture"), register);
+
 const upload = multer({ storage });
+
+/* MONGOOSE SETUP */
+const PORT = process.env.PORT || 6001;
+mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
+    app.listen(PORT, () => { console.log(`Server Port: ${PORT}`) });
+}).catch((err) => { console.log(`${err} did not connect`) });
